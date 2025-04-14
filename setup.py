@@ -1,0 +1,29 @@
+from setuptools import setup, find_packages
+
+setup(
+    name="fatelling-server",
+    version="1.0.0",
+    packages=find_packages(),
+    install_requires=[
+        "sxtwl",
+        "python-dateutil>=2.8.2",
+        "fastapi>=0.68.0",
+        "uvicorn>=0.15.0",
+        "pydantic>=1.8.0",
+        "langchain>=0.3.15",
+        "langchain-ollama",
+        "langchain-core",
+        "langchain-community",
+        "langchain-text-splitters",
+        "langchain-openai",
+        "langgraph",
+        "rich",
+        "pypdf",
+        "notebook",
+        "python-dotenv==1.0.0",
+        "requests==2.31.0",
+        "pytest>=7.4.0",
+        "httpx>=0.24.0",
+    ],
+    python_requires=">=3.8",
+) 

@@ -1,0 +1,9 @@
+---
+description: 本项目介绍与描述
+globs: 
+alwaysApply: false
+---
+
+# Your rule content
+
+- 本项目作为一个小程序和H5页面的后端，负责提供相应的API接口供前端调用

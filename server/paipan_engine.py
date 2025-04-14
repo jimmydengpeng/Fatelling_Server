@@ -18,8 +18,10 @@ DECADE_PILLAR = "da_yun"
 NUM_DECADE_PILLAR = 8
 
 
-class BaziPaipanEngine:
-    """八字排盘引擎"""
+class BaziCalculator:
+    """八字计算器
+    根据输入的年月日时、性别，提供阳历转农历、农历转阳历、八字计算、大运计算等功能。
+    """
 
     # 天干
     TIAN_GAN_NAMES = ["甲", "乙", "丙", "丁", "戊", "己", "庚", "辛", "壬", "癸"]
@@ -37,19 +39,16 @@ class BaziPaipanEngine:
         "甲寅", "乙卯", "丙辰", "丁巳", "戊午", "己未", "庚申", "辛酉", "壬戌", "癸亥"
     ]
     
-    # 节气名称
+    # 二十四节气
     JIE_QI_NAMES = [
         "冬至", "小寒", "大寒", "立春", "雨水", "惊蛰", "春分", "清明", "谷雨", "立夏", "小满", "芒种", 
         "夏至", "小暑", "大暑", "立秋", "处暑", "白露", "秋分", "寒露", "霜降", "立冬", "小雪", "大雪"
     ]
     
-    # 五行
+    # 天干对应五行
     TIAN_GAN_2_WU_XING = {
-        "甲": "木", "乙": "木",
-        "丙": "火", "丁": "火",
-        "戊": "土", "己": "土",
-        "庚": "金", "辛": "金",
-        "壬": "水", "癸": "水"
+        "甲": "木", "乙": "木", "丙": "火", "丁": "火", "戊": "土",
+        "己": "土", "庚": "金", "辛": "金", "壬": "水", "癸": "水"
     }
 
     # 五行生克关系
@@ -101,8 +100,9 @@ class BaziPaipanEngine:
         pass
 
     ## API ##
-    def solar_to_lunar(self, year: int, month: int, day: int) -> Dict:
-        """将阳历转换为农历"""
+    @classmethod
+    def solar_to_lunar(cls, year: int, month: int, day: int) -> Dict:
+        """阳历转农历"""
         solar_date = sxtwl.fromSolar(year, month, day)
         return {
             "year": solar_date.getLunarYear(),
@@ -112,8 +112,9 @@ class BaziPaipanEngine:
         }
 
     ## API ##
-    def lunar_to_solar(self, year: int, month: int, day: int, is_leap_month: bool = False) -> Dict:
-        """将农历转换为阳历"""
+    @classmethod
+    def lunar_to_solar(cls, year: int, month: int, day: int, is_leap_month: bool = False) -> Dict:
+        """农历转阳历"""
         lunar_date = sxtwl.fromLunar(year, month, day, is_leap_month)
         return {
             "year": lunar_date.getSolarYear(),
@@ -510,7 +511,7 @@ def main():
             raise ValueError("小时必须在0-23之间")
         
         # 计算八字
-        engine = BaziPaipanEngine()
+        engine = BaziCalculator()
         bazi = engine.calculate_bazi(year, month, day, hour, 0, False, "男")
         
         # 输出结果

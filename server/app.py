@@ -20,8 +20,8 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 app = FastAPI(
-    title="飞灵 - Fatelling",
-    description="基于AI的命理分析工具，旨在帮助用户了解自己的命运和性格特点。",
+    title="飞灵（Fatelling）- AI智能命运决策助手",
+    description="基于LLM的AI智能命运决策助手，提供八字排盘、命盘解读、命运分析等服务",
     version="1.0.0"
 )
 
@@ -34,6 +34,14 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# 挂载静态文件目录
+app.mount("/static", StaticFiles(directory="static"), name="static")
+
+# 添加 favicon 路由
+@app.get('/favicon.ico', include_in_schema=False)
+async def favicon():
+    return FileResponse('static/favicon.ico')
+
 # API路由定义
 @app.post("/api/basic_report")
 async def get_basic_report(user_input: BasicUserInput):
@@ -41,7 +49,7 @@ async def get_basic_report(user_input: BasicUserInput):
     logger.info("=== 开始处理 basic_report 请求 ===")
     logger.info(f"请求方法: POST")
     logger.info(f"请求路径: /api/basic_report")
-    logger.info(f"请求数据: {user_input.dict()}")
+    logger.info(f"请求数据: {user_input.model_dump()}")
     
     try:
         # 创建命主对象
