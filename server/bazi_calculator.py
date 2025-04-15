@@ -1,26 +1,13 @@
 from datetime import datetime, timedelta
 import sxtwl  # 使用寿星天文历库计算农历和八字
 from typing import Dict, Tuple, List
-import copy
-
-YEAR          = "year"
-MONTH         = "month"
-DAY           = "day"
-HOUR          = "hour"
-STEM          = "tian_gan"
-BRANCH        = "di_zhi"
-STEM_BRANCH   = "tian_gan_di_zhi"
-HIDDEN_STEM   = "cang_gan"
-FIVE_ELEMENTS = "wu_xing"
-TEN_GODS      = "shi_shen"
-DECADE_PILLAR = "da_yun"
+from terminology import *
 
 NUM_DECADE_PILLAR = 8
 
-
 class BaziCalculator:
     """八字计算器
-    根据输入的年月日时、性别，提供阳历转农历、农历转阳历、八字计算、大运计算等功能。
+    根据输入的年月日时、性别，进行阳历转农历、农历转阳历、八字计算、大运计算等。
     """
 
     # 天干
@@ -99,10 +86,15 @@ class BaziCalculator:
     def __init__(self):
         pass
 
-    ## API ##
-    @classmethod
-    def solar_to_lunar(cls, year: int, month: int, day: int) -> Dict:
-        """阳历转农历"""
+    @staticmethod
+    def solar_to_lunar(year: int, month: int, day: int) -> Dict:
+        """阳历转农历
+        
+        Args:
+            阳历日期（年月日）
+        Returns:
+            农历日期信息
+        """
         solar_date = sxtwl.fromSolar(year, month, day)
         return {
             "year": solar_date.getLunarYear(),
@@ -111,21 +103,50 @@ class BaziCalculator:
             "is_leap_month": solar_date.isLunarLeap()
         }
 
-    ## API ##
-    @classmethod
-    def lunar_to_solar(cls, year: int, month: int, day: int, is_leap_month: bool = False) -> Dict:
-        """农历转阳历"""
+    @staticmethod
+    def lunar_to_solar(year: int, month: int, day: int, is_leap_month: bool = False) -> Dict:
+        """农历转阳历
+        
+        Args:
+            农历日期信息
+        Returns:
+            阳历日期信息
+        """
         lunar_date = sxtwl.fromLunar(year, month, day, is_leap_month)
         return {
             "year": lunar_date.getSolarYear(),
             "month": lunar_date.getSolarMonth(),
             "day": lunar_date.getSolarDay()
         }
+
+
+    ## API ##
+    def calculate_bazi_from_lunar(
+        self,
+        lunar_year: int,
+        lunar_month: int,
+        lunar_day: int,
+        hour: int,
+        minute: int,
+        is_leap_month: bool,
+        gender: str  # "男" or "女"
+    ) -> Dict:   
+        """根据输入的农历日期信息，计算八字信息"""
+        return self._calculate_bazi(
+            lunar_year,
+            lunar_month,
+            lunar_day,
+            hour,
+            minute,
+            is_leap_month,
+            gender
+        )
     
     # TODO: 矫正真太阳时
     # TODO: 区分早晚子时
-    ## API ##
-    def calculate_bazi(
+
+
+    def _calculate_bazi(
         self,
         lunar_year: int,
         lunar_month: int,
@@ -135,8 +156,8 @@ class BaziCalculator:
         is_leap_month: bool,
         gender: str  # "男" or "女"
     ) -> Dict:
-        """
-        计算八字
+        """计算八字, 默认输入农历日期
+
         Args:
             lunar_year: 农历年
             lunar_month: 农历月
@@ -180,6 +201,8 @@ class BaziCalculator:
         
         return bazi
 
+
+
     def _create_pillar_info(self, stem_index: int, branch_index: int) -> Dict:
         """创建柱信息"""
         return {
@@ -189,8 +212,8 @@ class BaziCalculator:
         }
     
     def _calculate_ten_gods(self, bazi: Dict, day_stem: str) -> Dict[str, Dict[str, str]]:
-        """
-        根据八字干支信息计算日主以外的十神: 计算日干和其他天干、地支藏干的五行生克关系，以及阴阳异同判断十神
+        """根据八字干支信息计算日主以外的十神: 计算日干和其他天干、地支藏干的五行生克关系，以及阴阳异同判断十神
+
         Args:
             bazi: 八字信息字典
             day_stem: 日干
@@ -219,8 +242,8 @@ class BaziCalculator:
         return result
     
     def _calculate_stem_ten_god(self, stem: str, day_stem: str) -> str:
-        """
-        计算天干的十神
+        """计算天干的十神
+
         Args: 
             stem: 要计算的天干
             day_stem: 日干
@@ -239,8 +262,8 @@ class BaziCalculator:
         )]
     
     def _get_branch_ten_god(self, branch: str, day_stem: str) -> str:
-        """
-        获取地支藏干的十神（简化处理，只返回地支本气的十神）
+        """获取地支藏干的十神（简化处理，只返回地支本气的十神）
+
         Args:
             branch: 地支
             day_stem: 日干
@@ -255,8 +278,8 @@ class BaziCalculator:
         return self._calculate_stem_ten_god(hidden_stem, day_stem)
     
     def _get_hour_gz(self, day_stem: int, hour: int) -> Tuple[int, int]:
-        """
-        计算时柱天干地支
+        """计算时柱天干地支
+
         Args:
             day_stem: 日柱天干
             hour: 小时
@@ -273,8 +296,8 @@ class BaziCalculator:
     
     # TODO: 计算天干、地支（藏干）的五行数量
     def _calculate_five_elements(self, bazi: Dict) -> List[str]:
-        """
-        计算八字中的五行属性
+        """计算八字中的五行属性
+
         Args:
             bazi: 八字信息字典
         Returns:
@@ -307,10 +330,8 @@ class BaziCalculator:
         return " ".join(result)
 
     
-    # <大运计算>
     def _calculate_dayun(self, birth_day: sxtwl.Day, hour: int, minute: int, gender: str) -> Dict:
-        """
-        计算大运
+        """计算大运, 根据输入日期、时辰、性别, 计算大运信息
 
         八字大运计算规则
             1. 顺逆:
@@ -337,7 +358,9 @@ class BaziCalculator:
                 - 然后依据"十年一大运"的规则，以第一年大运年份为基础依次加10年，即可得到每一个大运的年份
 
         Args:
-            lunar_date: 农历日期信息字典，包含year, month, day, hour, is_leap_month
+            birth_day: 出生日期对象
+            hour: 时辰
+            minute: 分钟
             gender: 性别，"男"或"女"
         Returns:
             大运信息字典
@@ -493,6 +516,242 @@ class BaziCalculator:
             }
         }
 
+    
+    def print_bazi_result(self, bazi):
+        # 打印结果的美化显示
+        print("\n" + "="*60)
+        print(f"{'八字计算结果':^50}")
+        print("="*60)
+        
+        # 输入信息
+        lunar_year_val = 1992
+        lunar_month_val = 7
+        lunar_day_val = 27
+        hour_val = 8
+        gender_val = '男'
+        print(f"输入信息: 农历 {lunar_year_val}年{lunar_month_val}月{lunar_day_val}日 {hour_val}时 性别：{gender_val}")
+        
+        # 四柱
+        print("\n四柱:")
+        print(f"  年柱: {bazi[YEAR][STEM]}{bazi[YEAR][BRANCH]} ({','.join(bazi[YEAR][HIDDEN_STEM])})")
+        print(f"  月柱: {bazi[MONTH][STEM]}{bazi[MONTH][BRANCH]} ({','.join(bazi[MONTH][HIDDEN_STEM])})")
+        print(f"  日柱: {bazi[DAY][STEM]}{bazi[DAY][BRANCH]} ({','.join(bazi[DAY][HIDDEN_STEM])})")
+        print(f"  时柱: {bazi[HOUR][STEM]}{bazi[HOUR][BRANCH]} ({','.join(bazi[HOUR][HIDDEN_STEM])})")
+        
+        # 五行
+        print(f"\n五行: {','.join(bazi[FIVE_ELEMENTS])}")
+        
+        # 十神
+        print("\n十神:")
+        for pillar in [YEAR, MONTH, DAY, HOUR]:
+            pillar_name = {"year": "年", "month": "月", "day": "日", "hour": "时"}[pillar]
+            try:
+                ten_god = bazi[TEN_GODS][pillar][TEN_GODS]
+                branch_god = bazi[TEN_GODS][pillar][BRANCH]
+                hidden_gods = bazi[TEN_GODS][pillar][HIDDEN_STEM]
+                print(f"  {pillar_name}柱: 天干({ten_god}) 地支({branch_god}) 藏干({','.join(hidden_gods)})")
+            except:
+                print(f"  {pillar_name}柱: 信息不完整")
+        
+        # 大运信息
+        print("\n大运信息:")
+        print(f"  起运日期: {bazi[DECADE_PILLAR]['qiyun_date_solar']['year']}年{bazi[DECADE_PILLAR]['qiyun_date_solar']['month']}月{bazi[DECADE_PILLAR]['qiyun_date_solar']['day']}日")
+        print(f"  起运年龄: {bazi[DECADE_PILLAR]['start_age']['years']}岁{bazi[DECADE_PILLAR]['start_age']['months']}个月")
+        print(f"  顺逆: {'顺行' if bazi[DECADE_PILLAR]['is_forward'] else '逆行'}")
+        print(f"  节气: {bazi[DECADE_PILLAR]['jieqi_name']}")
+        print("  大运列表:")
+        for cycle in bazi[DECADE_PILLAR]['cycles'][:5]:  # 显示前5个大运
+            print(f"    {cycle['tian_gan']}{cycle['di_zhi']} ({cycle['year']}年起) 藏干: {','.join(cycle['cang_gan'])}")
+        
+        print("="*60)
+
+    def pretty_print_bazi(self, bazi):
+        """使用rich包的Panel功能美化八字计算结果的显示
+        将结果分为基本信息、四柱信息、五行属性、十神信息和大运信息几个部分显示
+        
+        Args:
+            bazi: 八字计算结果字典
+        """
+        from rich.console import Console
+        from rich.panel import Panel
+        from rich.table import Table
+        from rich.text import Text
+        from rich.layout import Layout
+        
+        console = Console()
+        
+        # 创建布局
+        layout = Layout()
+        layout.split(
+            Layout(name="title", size=3),
+            Layout(name="main")
+        )
+        layout["main"].split_row(
+            Layout(name="left", ratio=1),
+            Layout(name="right", ratio=1)
+        )
+        layout["left"].split(
+            Layout(name="input_info"),
+            Layout(name="pillars"),
+            Layout(name="elements")
+        )
+        layout["right"].split(
+            Layout(name="gods"),
+            Layout(name="destiny")
+        )
+        
+        # 标题
+        title_panel = Panel(
+            Text("八字计算结果", justify="center", style="bold white on blue"),
+            border_style="blue",
+            padding=(1, 2)
+        )
+        layout["title"].update(title_panel)
+        
+        # 输入信息面板
+        lunar_year_val = 1992
+        lunar_month_val = 7
+        lunar_day_val = 27
+        hour_val = 8
+        gender_val = '男'
+        
+        input_table = Table(show_header=False, box=None, padding=(0, 1))
+        input_table.add_column("label", style="cyan")
+        input_table.add_column("value", style="white")
+        input_table.add_row("农历日期", f"{lunar_year_val}年{lunar_month_val}月{lunar_day_val}日")
+        input_table.add_row("出生时间", f"{hour_val}时")
+        input_table.add_row("性别", gender_val)
+        
+        input_panel = Panel(
+            input_table,
+            title="[bold cyan]基本信息[/bold cyan]",
+            border_style="cyan",
+            padding=(1, 2)
+        )
+        layout["input_info"].update(input_panel)
+        
+        # 四柱信息面板
+        pillars_table = Table(show_header=True, box=None, padding=(0, 1))
+        pillars_table.add_column("柱位", style="cyan", justify="center")
+        pillars_table.add_column("天干地支", style="white", justify="center")
+        pillars_table.add_column("藏干", style="green", justify="center")
+        
+        for pillar, pillar_cn in [(YEAR, "年柱"), (MONTH, "月柱"), (DAY, "日柱"), (HOUR, "时柱")]:
+            pillars_table.add_row(
+                pillar_cn,
+                f"{bazi[pillar][STEM]}{bazi[pillar][BRANCH]}",
+                ", ".join(bazi[pillar][HIDDEN_STEM])
+            )
+        
+        pillars_panel = Panel(
+            pillars_table,
+            title="[bold cyan]四柱信息[/bold cyan]",
+            border_style="cyan",
+            padding=(1, 2)
+        )
+        layout["pillars"].update(pillars_panel)
+        
+        # 五行属性面板
+        elements_text = Text()
+        elements_text.append("五行组成: ", style="cyan")
+        elements_text.append(", ".join(bazi[FIVE_ELEMENTS]), style="yellow")
+        
+        elements_panel = Panel(
+            elements_text,
+            title="[bold cyan]五行属性[/bold cyan]",
+            border_style="cyan",
+            padding=(1, 2)
+        )
+        layout["elements"].update(elements_panel)
+        
+        # 十神信息面板
+        gods_table = Table(show_header=True, box=None, padding=(0, 1))
+        gods_table.add_column("柱位", style="cyan", justify="center")
+        gods_table.add_column("天干十神", style="white", justify="center")
+        gods_table.add_column("地支十神", style="green", justify="center")
+        gods_table.add_column("藏干十神", style="yellow", justify="center")
+        
+        for pillar, pillar_cn in [(YEAR, "年柱"), (MONTH, "月柱"), (DAY, "日柱"), (HOUR, "时柱")]:
+            try:
+                ten_god = bazi[TEN_GODS][pillar][TEN_GODS]
+                branch_god = bazi[TEN_GODS][pillar][BRANCH]
+                hidden_gods = ", ".join(bazi[TEN_GODS][pillar][HIDDEN_STEM])
+                gods_table.add_row(pillar_cn, ten_god, branch_god, hidden_gods)
+            except:
+                gods_table.add_row(pillar_cn, "信息不完整", "信息不完整", "信息不完整")
+        
+        gods_panel = Panel(
+            gods_table,
+            title="[bold cyan]十神信息[/bold cyan]",
+            border_style="cyan",
+            padding=(1, 2)
+        )
+        layout["gods"].update(gods_panel)
+        
+        # 大运信息面板
+        destiny_table = Table(show_header=False, box=None, padding=(0, 1))
+        destiny_table.add_column("label", style="cyan")
+        destiny_table.add_column("value", style="white")
+        
+        qiyun_date_solar = bazi[DECADE_PILLAR]['qiyun_date_solar']
+        destiny_table.add_row(
+            "起运日期", 
+            f"{qiyun_date_solar['year']}年{qiyun_date_solar['month']}月{qiyun_date_solar['day']}日"
+        )
+        destiny_table.add_row(
+            "起运年龄", 
+            f"{bazi[DECADE_PILLAR]['start_age']['years']}岁{bazi[DECADE_PILLAR]['start_age']['months']}个月"
+        )
+        destiny_table.add_row(
+            "顺逆", 
+            "顺行" if bazi[DECADE_PILLAR]['is_forward'] else "逆行"
+        )
+        destiny_table.add_row(
+            "节气", 
+            bazi[DECADE_PILLAR]['jieqi_name']
+        )
+        
+        # 大运列表
+        destiny_cycles_table = Table(show_header=True, box=None)
+        destiny_cycles_table.add_column("大运", style="cyan", justify="center")
+        destiny_cycles_table.add_column("干支", style="white", justify="center")
+        destiny_cycles_table.add_column("起始年", style="green", justify="center")
+        destiny_cycles_table.add_column("藏干", style="yellow", justify="center")
+        
+        for i, cycle in enumerate(bazi[DECADE_PILLAR]['cycles'][:5]):
+            destiny_cycles_table.add_row(
+                f"第{i+1}运",
+                f"{cycle['tian_gan']}{cycle['di_zhi']}",
+                f"{cycle['year']}年",
+                ", ".join(cycle['cang_gan'])
+            )
+        
+        # 将表格组合到一个Text对象中
+        destiny_content = Text()
+        
+        # 使用console.capture()而不是table.render()来获取表格字符串
+        with console.capture() as capture:
+            console.print(destiny_table)
+        
+        destiny_content.append(capture.get())
+        
+        destiny_content.append("\n大运列表:\n", style="cyan bold")
+        
+        with console.capture() as capture:
+            console.print(destiny_cycles_table)
+        
+        destiny_content.append(capture.get())
+        
+        destiny_panel = Panel(
+            destiny_content,
+            title="[bold cyan]大运信息[/bold cyan]",
+            border_style="cyan",
+            padding=(1, 2)
+        )
+        layout["destiny"].update(destiny_panel)
+        
+        # 打印完整布局
+        console.print(layout)
 
 def main():
     try:
@@ -512,7 +771,7 @@ def main():
         
         # 计算八字
         engine = BaziCalculator()
-        bazi = engine.calculate_bazi(year, month, day, hour, 0, False, "男")
+        bazi = engine.calculate_bazi_from_lunar(year, month, day, hour, 0, False, "男")
         
         # 输出结果
         print("\n=== 八字排盘结果 ===")
@@ -540,8 +799,8 @@ def main():
         print("起运日期（农历）:", f"{qiyun_date_lunar['year']}年{'闰' if qiyun_date_lunar['is_leap_month'] else ''}{qiyun_date_lunar['month']}月{qiyun_date_lunar['day']}日")
         print("大运流程:", " ".join([f"{cycle['tian_gan']}{cycle['di_zhi']} {cycle['year']}" for cycle in bazi[DECADE_PILLAR]["cycles"]]))
 
-        print("\n=== 八字 String ===")
-        print(engine.get_bazi_string(bazi))
+        print("\n=== 八字结果 ===")
+        engine.pretty_print_bazi(bazi)
         
     except ValueError as e:
         print(f"输入错误：{str(e)}")

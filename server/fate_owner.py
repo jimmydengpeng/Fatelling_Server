@@ -1,5 +1,5 @@
 from typing import Dict, List, Optional
-from server.paipan_engine import BaziPaipanEngine
+from server.bazi_calculator import BaziPaipanEngine
 from server.define import Gender, SolarBirthInfo, LunarBirthInfo, BaziInfo, PillarInfo, HeavenlyStem, EarthlyBranch, TenGodInfo, TenGodType, DestinyCycleInfo, StartAge
 
 

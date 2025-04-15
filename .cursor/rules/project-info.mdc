@@ -4,6 +4,6 @@ globs:
 alwaysApply: false
 ---
 
-# Your rule content
+# 飞灵 - 八字推算 & 基于LLM的命运解析
 
 - 本项目作为一个小程序和H5页面的后端，负责提供相应的API接口供前端调用
