@@ -202,20 +202,20 @@ class DestinyCycleInfo(BaseModel):
 class BaziInfo(BaseModel):
     """八字信息数据结构"""
     
-    '''四柱'''
-    year_pillar : PillarInfo = Field(..., description="年柱")
+    """四柱"""
+    year_pillar:  PillarInfo = Field(..., description="年柱")
     month_pillar: PillarInfo = Field(..., description="月柱")
-    day_pillar  : PillarInfo = Field(..., description="日柱")
-    hour_pillar : PillarInfo = Field(..., description="时柱")
+    day_pillar:   PillarInfo = Field(..., description="日柱")
+    hour_pillar:  PillarInfo = Field(..., description="时柱")
     
+    """五行"""
     # TODO: 扩展到地支
-    '''五行'''
     five_elements: List[str] = Field(default_factory=list, description="五行")
     
-    '''十神'''
+    """十神"""
     ten_gods: Dict[str, TenGodInfo] = Field(default_factory=dict, description="十神")
     
-    '''大运'''
+    """大运"""
     destiny_cycle: Optional[DestinyCycleInfo] = Field(None, description="大运信息")
     
     def get_bazi_string(self) -> str:

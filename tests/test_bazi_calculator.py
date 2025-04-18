@@ -117,6 +117,15 @@ class TestBaziCalculator:
         assert TEN_GODS in result1
         assert DECADE_PILLAR in result1
 
+    
+    def test_calculate_bazi_from_solar(self):
+        """测试阳历日期计算八字功能"""
+        calculator = BaziCalculator()
+        result1 = calculator.calculate_bazi_from_solar(
+            solar_year=2023, 
+            solar_month=1, 
+            solar_day=1, 
+        )
 
 if __name__ == "__main__":
     pytest.main(["-v", __file__]) 

@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta
 import sxtwl  # 使用寿星天文历库计算农历和八字
 from typing import Dict, Tuple, List
+from define import *
 from terminology import *
 
 NUM_DECADE_PILLAR = 8
@@ -130,8 +131,21 @@ class BaziCalculator:
         minute: int,
         is_leap_month: bool,
         gender: str  # "男" or "女"
-    ) -> Dict:   
-        """根据输入的农历日期信息，计算八字信息"""
+    ) -> BaziInfo:   
+        """根据输入的农历日期信息，计算八字信息
+        
+        Args:
+            lunar_year: 农历年
+            lunar_month: 农历月
+            lunar_day: 农历日
+            hour: 小时（24小时制）
+            minute: 分钟
+            is_leap_month: 是否闰月
+            gender: 性别，"男"或"女"
+            
+        Returns:
+            规范化的BaziInfo对象
+        """
         return self._calculate_bazi(
             lunar_year,
             lunar_month,
@@ -142,6 +156,41 @@ class BaziCalculator:
             gender
         )
     
+    ## API ##
+    def calculate_bazi_from_solar(
+        self,
+        solar_year: int,
+        solar_month: int,
+        solar_day: int,
+        hour: int,
+        minute: int,
+        gender: str  # "男" or "女"
+    ) -> BaziInfo:   
+        """根据输入的阳历日期信息，计算八字信息
+        
+        Args:
+            solar_year: 阳历年
+            solar_month: 阳历月
+            solar_day: 阳历日
+            hour: 小时（24小时制）
+            minute: 分钟
+            gender: 性别，"男"或"女"
+            
+        Returns:
+            规范化的BaziInfo对象
+        """
+        lunar_info = self.solar_to_lunar(solar_year, solar_month, solar_day)
+        return self._calculate_bazi(
+            lunar_info["year"],
+            lunar_info["month"],
+            lunar_info["day"],
+            hour,
+            minute,
+            lunar_info["is_leap_month"],
+            gender
+        )
+
+
     # TODO: 矫正真太阳时
     # TODO: 区分早晚子时
 
@@ -155,7 +204,7 @@ class BaziCalculator:
         minute: int,
         is_leap_month: bool,
         gender: str  # "男" or "女"
-    ) -> Dict:
+    ) -> BaziInfo:
         """计算八字, 默认输入农历日期
 
         Args:
@@ -166,8 +215,9 @@ class BaziCalculator:
             minute: 分钟
             is_leap_month: 是否闰月
             gender: 性别
+
         Returns:
-            包含八字信息的字典
+            包含八字信息的BaziInfo对象
         """
         # 获取农历日期
         day = sxtwl.fromLunar(lunar_year, lunar_month, lunar_day, is_leap_month)
@@ -180,7 +230,7 @@ class BaziCalculator:
         
         # 获取日干（命主）
         day_stem = self.TIAN_GAN_NAMES[day_gz.tg]
-        
+
         # 组装八字
         bazi = {
             YEAR  : self._create_pillar_info(year_gz.tg, year_gz.dz),
@@ -518,7 +568,7 @@ class BaziCalculator:
 
     
     def print_bazi_result(self, bazi):
-        # 打印结果的美化显示
+        """打印结果的美化显示"""
         print("\n" + "="*60)
         print(f"{'八字计算结果':^50}")
         print("="*60)
@@ -583,7 +633,7 @@ class BaziCalculator:
         # 创建布局
         layout = Layout()
         layout.split(
-            Layout(name="title", size=3),
+            Layout(name="input", size=3),
             Layout(name="main")
         )
         layout["main"].split_row(
@@ -601,12 +651,19 @@ class BaziCalculator:
         )
         
         # 标题
+        # title_panel = Panel(
+        #     # Text("八字计算结果", justify="center", style="cyan"),
+        #     Text("adadad"),
+        #     border_style="cyan",
+        #     padding=(1, 2)
+        # )
         title_panel = Panel(
-            Text("八字计算结果", justify="center", style="bold white on blue"),
-            border_style="blue",
+            input_table,
+            title="[bold cyan]基本信息[/bold cyan]",
+            border_style="cyan",
             padding=(1, 2)
         )
-        layout["title"].update(title_panel)
+        layout["input"].update(title_panel)
         
         # 输入信息面板
         lunar_year_val = 1992
